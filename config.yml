@@ -1,0 +1,27 @@
+dataset:
+  root: "./data"
+  keep_classes:
+    - "Esophagus"      # cls idx 7
+    - "Cervix"         # cls idx 13
+    - "Adrenal_gland"  # cls idx 14
+    - "Bile-duct"      # cls idx 15
+
+retriever:
+  img_sz: 224
+  batch_sz: 8
+  ckpt: "google/vit-base-patch16-224-in21k"
+  use_grayscale: False
+  embedding_dir: "embeddings.pt"
+
+generator:
+  img_sz: 128
+  batch_sz: 8
+  in_ch: 1
+  out_ch: 1
+
+train_args:
+  epochs: 50
+  lr: 1e-3
+  diffusion_steps: 1000
+  save_ckpt_name: "./test_rag.pt"
+  log: "./test_logs_rag"
