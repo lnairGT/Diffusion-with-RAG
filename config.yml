@@ -8,10 +8,11 @@ dataset:
 
 retriever:
   img_sz: 224
-  batch_sz: 8
-  ckpt: "google/vit-base-patch16-224-in21k"
+  model_arch: "google/vit-base-patch16-224-in21k"
+  wt_ckpt: "model-ckpts/best_vit_model.pt" # Load a set of weights that is not pretrained
   use_grayscale: False
-  embedding_dir: "embeddings.pt"
+  embedding_dir: "embed_database.pt"
+  num_db_images_per_class: 20
 
 generator:
   img_sz: 128
@@ -24,5 +25,5 @@ train_args:
   lr: 1e-3
   weight_decay: 0.1
   diffusion_steps: 1000
-  save_ckpt_name: "./test_rag.pt"
+  save_ckpt_name: "./test-rag.pt"
   log: "./test_logs_rag"

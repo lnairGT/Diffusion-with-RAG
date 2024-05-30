@@ -130,13 +130,9 @@ class RAGUNet(torch.nn.Module):
 class ViTRAGModel(torch.nn.Module):
     def __init__(self, model_ckpt):
         super().__init__()
-        self.rag_model = ViTModel.from_pretrained(model_ckpt)
-        self.img_processor = ViTImageProcessor.from_pretrained(model_ckpt)
+        self.vitmodel = ViTModel.from_pretrained(model_ckpt)
 
     def forward(self, img):
-        device = next(self.rag_model.parameters()).device
-        processed_output = self.img_processor(img, return_tensors='pt')['pixel_values']
-        processed_output = processed_output.to(device)
-        output = self.rag_model(processed_output)
+        output = self.vitmodel(img)
         cls_token = output.last_hidden_state[:, 0, :]
         return cls_token.squeeze(1)
