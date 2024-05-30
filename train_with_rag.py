@@ -38,7 +38,11 @@ def train(
     # Loss and optimizers
     num_epochs = cfg["train_args"]["epochs"]
     loss_fn = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=float(cfg["train_args"]["lr"]))
+    optimizer = torch.optim.Adam(
+        model.parameters(),
+        lr=float(cfg["train_args"]["lr"]),
+        weight_decay=cfg["train_args"]["weight_decay"]
+    )
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, num_epochs)
 
     best_loss = 10000.0
