@@ -2,10 +2,10 @@
 
 <img src="assets/cell-synthesis-eso.gif" alt="Esophagus" width="240" height="240" />
 
-This repo contains the code for the conditioned synthesis of cancer tissues across 19 classes using retrieval augmented diffusion. This work is inspired by "_Semi-Parametric Neural Image Synthesis_", by Blattman et al. 2022 ([here](https://arxiv.org/abs/2204.11824)).
+This repo contains code for the synthesis of cancer tissues across 19 classes using retrieval augmented diffusion. This work is inspired by "_Semi-Parametric Neural Image Synthesis_", by Blattman et al. 2022 ([here](https://arxiv.org/abs/2204.11824)). It also contains code for class-conditioned image synthesis.
 
 ## Getting started
-Please see `requirements.txt` for the full list of requirements for running the repo. This repo depends on Pytorch and HuggingFace (diffusers) libraries. Use `pip install -r requirements.txt` to install.
+Please see `requirements.txt` for the full list of requirements for running the repo. This repo depends on Pytorch and HuggingFace ([Diffusers](https://huggingface.co/docs/diffusers/en/index)) libraries. Use `pip install -r requirements.txt` to install.
 
 ### Dataset
 The dataset used is the PanNuke dataset from "_PanNuke Dataset Extension, Insights and Baselines_" by Gamper et al. 2020 ([here](https://arxiv.org/abs/2003.10778)). The dataset can be downloaded from ([Kaggle](https://www.kaggle.com/datasets/andrewmvd/cancer-inst-segmentation-and-classification)). Once downloaded, the config file can be updated with the `root` directory corresponding to the `images.npy` and `types.npy` files.
