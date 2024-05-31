@@ -37,5 +37,8 @@ The code will generate a set of sample images at the end, and the argument `--ge
 
 ## Results
 
+## Todo
+Further improvements to the model are pending. More to come soon!
+
 ### Citation
 If you find this repo helpful, please consider citing / starring the repo. Thank you!
