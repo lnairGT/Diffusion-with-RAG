@@ -37,6 +37,13 @@ The code will generate a set of sample images at the end, and the argument `--ge
 
 ## Results
 
+<p float="left">
+    <img src="assets/Adrenal.png" alt="Adrenal" width="240" />
+    <img src="assets/Esophagus.png" alt="Esophagus" width="240" />
+    <img src="assets/Bile_duct.png" alt="Bile Duct" width="240" />
+    <img src="assets/Cervix.png" alt="Cervix" width="240" />    
+</p>
+
 ## Todo
 Further improvements to the model are pending. More to come soon!
 
