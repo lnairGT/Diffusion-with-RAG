@@ -36,6 +36,9 @@ This will perform class-conditioned training of a UNet model, without using RAG.
 The code will generate a set of sample images at the end, and the argument `--gen-class` specifies the class of images to generate. The argument `--num-img-gens` specifies the number of images to generate for the specified class. The generation will sample some baseline images from the dataset and display it alongside the synthesized images (see examples below). The `--keep_classes` argument in the config determines which subset of classes from the dataset to use. By default 4 classes are used: Esophagus, Cervix, Bile-Duct, and Adrenal-Gland.
 
 ## Results
+Further modifications to the model are pending to improve image generations. More to come soon!
+
+### Diffusion without RAG
 
 <p float="left">
     <img src="assets/Adrenal.png" alt="Adrenal" width="240" />
@@ -44,8 +47,14 @@ The code will generate a set of sample images at the end, and the argument `--ge
     <img src="assets/Cervix.png" alt="Cervix" width="240" />    
 </p>
 
-## Todo
-Further improvements to the model are pending. More to come soon!
+### Diffusion with RAG
+Slight improvement in the darker cell spots that are generated.
+<p float="left">
+    <img src="assets/Adrenal_no_RAG.png" alt="Adrenal" width="240" />
+    <img src="assets/Esophagus_no_RAG.png" alt="Esophagus" width="240" />
+    <img src="assets/Bile_duct_no_RAG.png" alt="Bile Duct" width="240" />
+    <img src="assets/Cervix_no_RAG.png" alt="Cervix" width="240" />    
+</p>
 
 ### Citation
 If you find this repo helpful, please consider citing / starring the repo. Thank you!
