@@ -65,6 +65,7 @@ def get_class_mapping(keep_classes):
     return cmap
 
 def train(cfg, model, train_dataloader, val_loader, class_mapping, device):
+    model = model.to(device)
     num_epochs = cfg["train_args"]["epochs"]
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=float(cfg["train_args"]["lr"]), weight_decay=0.1)
