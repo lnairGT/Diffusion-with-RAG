@@ -55,7 +55,7 @@ Further modifications to the model are pending to improve image generations. Lim
 </p>
 
 ### Diffusion with RAG
-Slight improvement in the darker cell spots that are generated.
+Slight improvement in the darker cell spots that are generated. These were generated using a retriever ViT model fine-tuned to perform classification on the PanNuke dataset (See section on "Training the retriever").
 <p float="left">
     <img src="assets/Adrenal_no_RAG.png" alt="Adrenal" width="240" />
     <img src="assets/Esophagus_no_RAG.png" alt="Esophagus" width="240" />
