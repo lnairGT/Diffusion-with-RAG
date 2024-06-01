@@ -54,7 +54,7 @@ def generate_img_with_rag(
             if l == class_label:
                 with torch.no_grad():
                     base_imgs.append(gs_tf(data[i, ...]).to(device))
-                    ref_embed.append(retrieval_model(data[i, ...]).to(device))
+                    ref_embed.append(retrieval_model(data[i, ...].unsqueeze(0).to(device)))
                     count += 1
                     if count == num_imgs:
                         break
@@ -95,3 +95,4 @@ def visualize_img(imgs, baseline_imgs, filename, class_label):
     ax[1].set_title(f"Baseline Images: {class_label}")
     plt.tight_layout()
     plt.savefig(filename)
+    plt.close()

@@ -1,17 +1,34 @@
 dataset:
-  root: "./data"
-  keep_classes:
-    - "Esophagus"      # cls idx 7
-    - "Cervix"         # cls idx 13
-    - "Adrenal_gland"  # cls idx 14
-    - "Bile-duct"      # cls idx 15
+  root: "/home/lnair/image-diffusion/clean-diffusion-code/data"
+  keep_classes:  # Classes from the dataset to use for training and evaluation
+    #- 'Breast'
+    #- 'Colon'
+    #- 'Lung'
+    #- 'Kidney'
+    #- 'Prostate'
+    #- 'Bladder'
+    #- 'Stomach'
+    - 'Esophagus'
+    #- 'Pancreatic'
+    #- 'Uterus'
+    #- 'Thyroid'
+    #- 'Ovarian'
+    #- 'Skin'
+    - 'Cervix'
+    - 'Adrenal_gland'
+    - 'Bile-duct'
+    #- 'Testis'
+    #- 'HeadNeck'
+    #- 'Liver'
 
 retriever:
   img_sz: 224
   batch_sz: 8
-  ckpt: "google/vit-base-patch16-224-in21k"
+  model_arch: "google/vit-base-patch16-224-in21k"
+  wt_ckpt: "best_vit_model.pt"
   use_grayscale: False
-  embedding_dir: "embeddings.pt"
+  embedding_dir: "embeddings.pt"  # Save the compiled database of retrieval image embeddings
+  num_db_images_per_class: 20
 
 generator:
   img_sz: 128
@@ -20,8 +37,8 @@ generator:
   out_ch: 1
 
 train_args:
-  epochs: 50
+  epochs: 20
   lr: 1e-3
   diffusion_steps: 1000
-  save_ckpt_name: "./test_rag.pt"
+  save_ckpt_name: "test_rag_with_retrieval.pt"
   log: "./test_logs_rag"
