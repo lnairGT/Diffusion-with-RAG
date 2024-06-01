@@ -36,6 +36,7 @@ This will perform class-conditioned training of a UNet model, without using RAG.
 The code will generate a set of sample images at the end, and the argument `--gen-class` specifies the class of images to generate. The argument `--num-img-gens` specifies the number of images to generate for the specified class. The generation will sample some baseline images from the dataset and display it alongside the synthesized images (see examples below). The `--keep_classes` argument in the config determines which subset of classes from the dataset to use. By default, only 4 classes are used: Esophagus, Cervix, Bile-Duct, and Adrenal-Gland.
 
 ### Training the retriever
+TBD.
 
 ## Results
 Further modifications to the model are pending to improve image generations. Limited training data is a particular challenge. More to come soon!
