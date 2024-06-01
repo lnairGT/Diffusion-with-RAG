@@ -24,8 +24,8 @@ dataset:
 retriever:
   img_sz: 224
   batch_sz: 8
-  model_arch: "google/vit-base-patch16-224-in21k"
-  wt_ckpt: "best_vit_model.pt"
+  model_arch: "google/vit-base-patch16-224-in21k"  # Model architecture to use for retriever
+  wt_ckpt: null  # Check point for the model with weights trained for tissue image classification if any
   use_grayscale: False
   embedding_dir: "embeddings.pt"  # Save the compiled database of retrieval image embeddings
   num_db_images_per_class: 20
