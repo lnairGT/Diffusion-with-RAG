@@ -1,6 +1,6 @@
 import torch
 from diffusers import UNet2DModel
-from transformers import AutoProcessor, CLIPModel, ViTModel, ViTImageProcessor
+from transformers import ViTModel
 
 
 class SimpleUNet(torch.nn.Module):
@@ -90,6 +90,7 @@ class TextConditionedUNet(torch.nn.Module):
 
 
 class RAGUNet(torch.nn.Module):
+    # Architecture of the RAG generator model (UNet that takes in embeddings from the retriever)
     def __init__(
         self,
         img_size,
@@ -117,7 +118,7 @@ class RAGUNet(torch.nn.Module):
             )
         )
 
-        # Map from retrieval to time step embedding
+        # Map from retrieval embedding dim to time step embedding dim
         self.img_to_time_mapping = torch.nn.Linear(
             retrieval_embed_dim, self.block_out_channels[0] * 4
         )
@@ -128,15 +129,12 @@ class RAGUNet(torch.nn.Module):
 
 
 class ViTRAGModel(torch.nn.Module):
+    # Architecture of the retriever model that outputs embeddings for a given input image
     def __init__(self, model_ckpt):
         super().__init__()
-        self.rag_model = ViTModel.from_pretrained(model_ckpt)
-        self.img_processor = ViTImageProcessor.from_pretrained(model_ckpt)
+        self.vitmodel = ViTModel.from_pretrained(model_ckpt)
 
     def forward(self, img):
-        device = next(self.rag_model.parameters()).device
-        processed_output = self.img_processor(img, return_tensors='pt')['pixel_values']
-        processed_output = processed_output.to(device)
-        output = self.rag_model(processed_output)
+        output = self.vitmodel(img)
         cls_token = output.last_hidden_state[:, 0, :]
         return cls_token.squeeze(1)

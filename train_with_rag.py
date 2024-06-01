@@ -6,7 +6,7 @@ from diffusers import DDPMScheduler
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
-from utils import load_model, get_avg_embed_data
+from utils import load_model, create_DB
 from gen_utils import generate_img_with_rag, visualize_img, generate_img, retrieve_db_images
 from model import ViTRAGModel 
 import argparse
@@ -29,9 +29,7 @@ def train(
     noise_scheduler,
     cfg,
     device,
-    use_rag=False,
-    class_mapping=None,
-    avg_data=None
+    embed_db=None
 ):
     print("Starting training...")
     writer = SummaryWriter(cfg["train_args"]["log"])
@@ -48,27 +46,20 @@ def train(
         print("Epoch: ", epoch)
         epoch_losses = []
         for img, label in tqdm(train_dataloader):
-            if use_rag:
-                assert avg_data is not None
-                # Extract averaged embeddings based on class label mapping
-                if class_mapping:
-                    # If only a subset of the classes are used
-                    indices = torch.Tensor(
-                        [class_mapping[l.item()] for l in label]
-                    ).to(device)
-                else:
-                    # If all classes are used
-                    indices = torch.Tensor(
-                        [l.item() for l in label]
-                    ).to(device)
-                embeds = avg_data[indices.long(), :]
+            if embed_db is not None:
+                # Extract embeddings for random images from dataset corresponding to labels (for RAG)
+                db_data = []
+                for l in label:
+                    assert l.item() in embed_db, "Indexed item not in database"
+                    rand_data = embed_db[l.item()][torch.randint(0, len(embed_db[l.item()]), (1,)).long()]
+                    db_data.append(rand_data)
+                embeds = torch.stack(db_data, dim=0).squeeze(1).to(device)
             else:
+                # Use class conditioning instead of RAG
                 embeds = None
             
             img, label = img.to(device), label.to(device)
-            timestep = torch.randint(
-                0, cfg["train_args"]["diffusion_steps"] - 1, (img.shape[0],)
-            ).long().to(device)
+            timestep = torch.randint(0, cfg["train_args"]["diffusion_steps"] - 1, (img.shape[0],)).long().to(device)
             noise = torch.randn(img.shape).to(device)
             noisy_img = noise_scheduler.add_noise(img, noise, timestep)
             pred = model(
@@ -140,6 +131,8 @@ def generate_image(
     visualize_img(noisy_imgs, base_imgs, "Generations.png", CLASS_MAP[class_label])
 
 def get_class_mapping(keep_classes):
+    # This function is helpful when only a subset of the dataset classes are used.
+    # It maps indices [0..N] to actual class labels.
     for c in keep_classes:
         assert c in CLASS_MAP.values()
 
@@ -159,47 +152,45 @@ def main(args, cfg):
 
     if args.use_rag:
         if not os.path.isfile(cfg["retriever"]["embedding_dir"]):
-            retrieval_model = ViTRAGModel(cfg["retriever"]["ckpt"])
+            retrieval_model = ViTRAGModel(cfg["retriever"]["model_arch"])
+            if cfg["retriever"]["wt_ckpt"] is not None:
+                print("Loading custom weights into retriever model...")
+                ckpt = torch.load(cfg["retriever"]["wt_ckpt"])
+                retrieval_model.load_state_dict(ckpt["model_state_dict"], strict=False)
+                del ckpt
             retriever_dataloader = get_pannuke_dataloader(
                 img_path,
                 label_path,
                 cfg["retriever"]["img_sz"],
-                batch_size=cfg["retriever"]["batch_sz"],
+                batch_size=1,
                 keep_classes=cfg["dataset"]["keep_classes"],
                 use_grayscale=cfg["retriever"]["use_grayscale"]
             )
-            # Computes averaged embeddings for each class
-            print("Computing averaged embeddings...")
-            avg_data, _ = get_avg_embed_data(
+            # Pre-computes and stores a set embeddings for randomly sampled images from each class
+            print("Computing embeddings database...")
+            embed_dB = create_DB(
                 retrieval_model,
+                class_mapping.keys(),
                 retriever_dataloader,
-                "cpu",
-                list(class_mapping.keys()),
-                num_samples_per_class=20
+                device,
+                cfg["retriever"]["num_db_images_per_class"]
             )
+            # Save database for later use
+            torch.save(embed_dB, cfg["retriever"]["embedding_dir"])
 
-            # Save averaged embeddings for later use
-            torch.save(
-                {
-                    "avg_data": avg_data,
-                    "class_mapping": class_mapping
-                },
-                cfg["retriever"]["embedding_dir"]
-            )
             del retrieval_model
             del retriever_dataloader
         else:
-            data = torch.load(cfg["retriever"]["embedding_dir"])
-            avg_data = data["avg_data"]
-            class_mapping = data["class_mapping"]
+            embed_dB = torch.load(cfg["retriever"]["embedding_dir"])
 
-        avg_data = avg_data.to(device)
+        embed_dB = {k: v.to(device) for k, v in embed_dB.items()}
+        retrieval_dim = list(embed_dB.values())[0].shape[-1]
 
         model = RAGUNet(
             cfg["generator"]["img_sz"],
             cfg["generator"]["in_ch"],
             cfg["generator"]["out_ch"],
-            retrieval_embed_dim=avg_data.shape[-1]
+            retrieval_embed_dim=retrieval_dim
         )
     else:
         model = TextConditionedUNet(
@@ -208,7 +199,7 @@ def main(args, cfg):
             cfg["generator"]["out_ch"],
             len(class_mapping)
         )
-        avg_data = None
+        embed_dB = None
 
     model = model.to(device)
     noise_scheduler = DDPMScheduler(
@@ -231,21 +222,24 @@ def main(args, cfg):
             noise_scheduler,
             cfg,
             device,
-            use_rag=args.use_rag,
-            class_mapping=class_mapping,
-            avg_data=avg_data
+            embed_dB
         )
     
     if not args.do_train:
+        # Load saved checkpoint for image generation
         model = load_model(model, cfg["train_args"]["save_ckpt_name"])
     
     if args.use_rag:
-        retrieval_model = ViTRAGModel(cfg["retriever"]["ckpt"])
+        retrieval_model = ViTRAGModel(cfg["retriever"]["model_arch"])
+        if cfg["retriever"]["wt_ckpt"] is not None:
+            print("Loading custom weights into retriever model...")
+            ckpt = torch.load(cfg["retriever"]["wt_ckpt"])
+            retrieval_model.load_state_dict(ckpt["model_state_dict"], strict=False)
+            del ckpt
         retriever_dataloader = get_pannuke_dataloader(
             img_path,
             label_path,
             cfg["retriever"]["img_sz"],
-            batch_size=cfg["retriever"]["batch_sz"],
             keep_classes=cfg["dataset"]["keep_classes"],
             use_grayscale=cfg["retriever"]["use_grayscale"]
         )
@@ -253,8 +247,7 @@ def main(args, cfg):
         retrieval_model=None
         retriever_dataloader=None
 
-    # Generate a set of images for each class
-    # Compare to baseline images
+    # Generate a set of images for each class and compare to baseline images
     # Ensure class generation label is in the class mapping
     assert args.gen_class in class_mapping.keys()
     base_imgs = retrieve_db_images(train_dataloader, args.gen_class, args.num_img_gens)
@@ -277,7 +270,7 @@ if __name__ == "__main__":
     argparser.add_argument("--use-rag", action="store_true", help="Use RAG for generation")
     argparser.add_argument("--do-train", action="store_true", help="Perform training")
     argparser.add_argument("--config", type=str, help="Config yaml with model specifications")
-    argparser.add_argument("--gen-class", type=int, help="Class label for image generation")
+    argparser.add_argument("--gen-class", type=int, help="Specify which class to generate images for")
     argparser.add_argument("--num-img-gens", type=int, help="Number of images to generate")
     args = argparser.parse_args()
 

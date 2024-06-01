@@ -27,7 +27,7 @@ def get_pannuke_dataloader(
             transforms.Normalize(mean=(0.0, 0.0, 0.0), std=(255.0, 255.0, 255.0))
         ])
 
-    # ignore_classes can be used to extract only fixed classes from dataset
+    # keep_classes can be used to extract only fixed classes from dataset
     dataset = PanNukeImageDataset(
         img_path, label_path, img_size, keep_classes, transform=transform_data
     )
