@@ -14,6 +14,7 @@ def generate_img(
     num_imgs,
     device
 ):
+    # Generate class conditioned images with the provided class_label
     model.eval()
     model = model.to(device)
     noisy_img = torch.randn((num_imgs, img_channels, img_size, img_size)).to(device)
@@ -39,6 +40,7 @@ def generate_img_with_rag(
     num_imgs,
     device
 ):
+    # Generate retrieval augmented images for the specified class label
     model.eval()
     model = model.to(device)
     retrieval_model.eval()
@@ -84,6 +86,7 @@ def retrieve_db_images(dataloader, class_label, num_imgs):
 
 
 def visualize_img(imgs, baseline_imgs, filename, class_label):
+    # Visualize the generated images vs. the baseline original images from the dataset
     _, ax = plt.subplots(2, 1)
     imgs = torchvision.utils.make_grid(imgs)
     base_imgs = torchvision.utils.make_grid(baseline_imgs)

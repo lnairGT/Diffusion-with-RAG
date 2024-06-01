@@ -8,6 +8,7 @@ from sklearn import manifold
 
 
 def get_data_dist(train_dataloader):
+    # Get number of datapoints per class
     label_count = {}
     for _, label in train_dataloader:
         for i in range(len(label)):
@@ -17,12 +18,15 @@ def get_data_dist(train_dataloader):
                 label_count[label[i].item()] = 1
     return label_count
 
+
 def load_model(model, ckpt_path):
     ckpt = torch.load(ckpt_path)
     model.load_state_dict(ckpt["model_state_dict"])
     return model
 
+
 def create_DB(retrieval_model, class_labels, train_loader, device, num_imgs=20):
+    # Create a database consisting of embeddings for randomly sampled images from each class (for RAG)
     DB = {}
     retrieval_model = retrieval_model.to(device)
     for data, label in tqdm(train_loader, desc='Creating DB'):

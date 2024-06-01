@@ -47,6 +47,7 @@ def train(
         epoch_losses = []
         for img, label in tqdm(train_dataloader):
             if embed_db is not None:
+                # Extract embeddings for random images from dataset corresponding to labels (for RAG)
                 db_data = []
                 for l in label:
                     assert l.item() in embed_db, "Indexed item not in database"
@@ -54,12 +55,11 @@ def train(
                     db_data.append(rand_data)
                 embeds = torch.stack(db_data, dim=0).squeeze(1).to(device)
             else:
+                # Use class conditioning instead of RAG
                 embeds = None
             
             img, label = img.to(device), label.to(device)
-            timestep = torch.randint(
-                0, cfg["train_args"]["diffusion_steps"] - 1, (img.shape[0],)
-            ).long().to(device)
+            timestep = torch.randint(0, cfg["train_args"]["diffusion_steps"] - 1, (img.shape[0],)).long().to(device)
             noise = torch.randn(img.shape).to(device)
             noisy_img = noise_scheduler.add_noise(img, noise, timestep)
             pred = model(
@@ -131,6 +131,8 @@ def generate_image(
     visualize_img(noisy_imgs, base_imgs, "Generations.png", CLASS_MAP[class_label])
 
 def get_class_mapping(keep_classes):
+    # This function is helpful when only a subset of the dataset classes are used.
+    # It maps indices [0..N] to actual class labels.
     for c in keep_classes:
         assert c in CLASS_MAP.values()
 
@@ -164,7 +166,7 @@ def main(args, cfg):
                 keep_classes=cfg["dataset"]["keep_classes"],
                 use_grayscale=cfg["retriever"]["use_grayscale"]
             )
-            # Computes averaged embeddings for each class
+            # Pre-computes and stores a set embeddings for randomly sampled images from each class
             print("Computing embeddings database...")
             embed_dB = create_DB(
                 retrieval_model,
@@ -224,6 +226,7 @@ def main(args, cfg):
         )
     
     if not args.do_train:
+        # Load saved checkpoint for image generation
         model = load_model(model, cfg["train_args"]["save_ckpt_name"])
     
     if args.use_rag:
@@ -244,8 +247,7 @@ def main(args, cfg):
         retrieval_model=None
         retriever_dataloader=None
 
-    # Generate a set of images for each class
-    # Compare to baseline images
+    # Generate a set of images for each class and compare to baseline images
     # Ensure class generation label is in the class mapping
     assert args.gen_class in class_mapping.keys()
     base_imgs = retrieve_db_images(train_dataloader, args.gen_class, args.num_img_gens)
@@ -268,7 +270,7 @@ if __name__ == "__main__":
     argparser.add_argument("--use-rag", action="store_true", help="Use RAG for generation")
     argparser.add_argument("--do-train", action="store_true", help="Perform training")
     argparser.add_argument("--config", type=str, help="Config yaml with model specifications")
-    argparser.add_argument("--gen-class", type=int, help="Class label for image generation")
+    argparser.add_argument("--gen-class", type=int, help="Specify which class to generate images for")
     argparser.add_argument("--num-img-gens", type=int, help="Number of images to generate")
     args = argparser.parse_args()
 
