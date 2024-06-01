@@ -1,5 +1,5 @@
 dataset:
-  root: "/home/lnair/image-diffusion/clean-diffusion-code/data"
+  root: "/data"
   keep_classes:  # Classes from the dataset to use for training and evaluation
     #- 'Breast'
     #- 'Colon'
@@ -40,5 +40,5 @@ train_args:
   epochs: 20
   lr: 1e-3
   diffusion_steps: 1000
-  save_ckpt_name: "test_rag_with_retrieval.pt"
-  log: "./test_logs_rag"
+  save_ckpt_name: "model_rag_with_retrieval.pt"
+  log: "./train_logs_rag"
