@@ -10,7 +10,7 @@ python main.py \
 ```
 The config file contains different specifications for training the expert such as batch size, image size, learning rate, epochs etc. The script also runs evaluation and plots the confusion matrix. Training with the default parameters will fine-tune ResNet50 pretrained on Imagenet-1k, and should yield ~93% accuracy.
 
-<img src="assets/Confusion_mat_expert.png" alt="cf_expert" width="320" />
+<img src="assets/Confusion_mat_expert.png" alt="cf_expert" width="640" />
 
 ## Fine-tuning tiny stable diffusion
 To train the stable diffusion model, run the following:
@@ -23,7 +23,7 @@ python train_sd.py \
 ```
 This will train the model and generate 5 sample images from class 6. Sample generations can be viewed in the folder `assets/diffusion_viz`.
 
-<img src="assets/generations.png" alt="generations" width="320" />
+<img src="assets/generations.png" alt="generations" width="640" />
 
 ## Evaluating image generations
 The generated images can be evaluated with the expert model using the following:
@@ -36,4 +36,4 @@ python evaluator.py \
 ```
 The `--generations-path` argument should correspond to the folder containing the generated images separated into subfolders for each class. This gives 63% accuracy in generations with the following confusion matrix:
 
-<img src="assets/Confusion_mat.png" alt="cf_sd" width="320" />
+<img src="assets/Confusion_mat.png" alt="cf_sd" width="640" />
